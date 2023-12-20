@@ -100,6 +100,193 @@ decl_id! {
     Map => (12, IndexMap<Hash40, Value>)
 }
 
+impl Value {
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Self::Bool(b) => Some(*b),
+            _ => None,
+        }
+    }
+
+    pub fn as_i8(&self) -> Option<i8> {
+        match self {
+            Self::I8(v) => Some(*v),
+            Self::U8(v) => (*v).try_into().ok(),
+            Self::I16(v) => (*v).try_into().ok(),
+            Self::U16(v) => (*v).try_into().ok(),
+            Self::I32(v) => (*v).try_into().ok(),
+            Self::U32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_u8(&self) -> Option<u8> {
+        match self {
+            Self::U8(v) => Some(*v),
+            Self::I8(v) => (*v).try_into().ok(),
+            Self::I16(v) => (*v).try_into().ok(),
+            Self::U16(v) => (*v).try_into().ok(),
+            Self::I32(v) => (*v).try_into().ok(),
+            Self::U32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_i16(&self) -> Option<i16> {
+        match self {
+            Self::I8(v) => Some(*v as i16),
+            Self::U8(v) => Some(*v as i16),
+            Self::I16(v) => Some(*v),
+            Self::U16(v) => (*v).try_into().ok(),
+            Self::I32(v) => (*v).try_into().ok(),
+            Self::U32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_u16(&self) -> Option<u16> {
+        match self {
+            Self::I8(v) => Some(*v as u16),
+            Self::U8(v) => Some(*v as u16),
+            Self::U16(v) => Some(*v),
+            Self::I16(v) => (*v).try_into().ok(),
+            Self::I32(v) => (*v).try_into().ok(),
+            Self::U32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_i32(&self) -> Option<i32> {
+        match self {
+            Self::I8(v) => Some(*v as i32),
+            Self::U8(v) => Some(*v as i32),
+            Self::I16(v) => Some(*v as i32),
+            Self::U16(v) => Some(*v as i32),
+            Self::I32(v) => Some(*v),
+            Self::U32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_u32(&self) -> Option<u32> {
+        match self {
+            Self::I8(v) => Some(*v as u32),
+            Self::U8(v) => Some(*v as u32),
+            Self::I16(v) => Some(*v as u32),
+            Self::U16(v) => Some(*v as u32),
+            Self::U32(v) => Some(*v),
+            Self::I32(v) => (*v).try_into().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_f32(&self) -> Option<f32> {
+        match self {
+            Self::F32(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    pub fn as_hash(&self) -> Option<Hash40> {
+        match self {
+            Self::Hash(hash) => Some(*hash),
+            _ => None,
+        }
+    }
+
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            Self::String(s) => Some(s.as_str()),
+            _ => None,
+        }
+    }
+
+    pub fn as_list(&self) -> Option<&[Value]> {
+        match self {
+            Self::List(list) => Some(list),
+            _ => None,
+        }
+    }
+
+    pub fn as_map(&self) -> Option<&IndexMap<Hash40, Value>> {
+        match self {
+            Self::Map(map) => Some(map),
+            _ => None,
+        }
+    }
+
+    pub fn merge(&mut self, other: &Value) {
+        match self {
+            Self::Bool(v) => {
+                if let Some(other) = other.as_bool() {
+                    *v = other;
+                }
+            }
+            Self::I8(v) => {
+                if let Some(other) = other.as_i8() {
+                    *v = other;
+                }
+            }
+            Self::U8(v) => {
+                if let Some(other) = other.as_u8() {
+                    *v = other;
+                }
+            }
+            Self::I16(v) => {
+                if let Some(other) = other.as_i16() {
+                    *v = other;
+                }
+            }
+            Self::U16(v) => {
+                if let Some(other) = other.as_u16() {
+                    *v = other;
+                }
+            }
+            Self::I32(v) => {
+                if let Some(other) = other.as_i32() {
+                    *v = other;
+                }
+            }
+            Self::U32(v) => {
+                if let Some(other) = other.as_u32() {
+                    *v = other;
+                }
+            }
+            Self::F32(v) => {
+                if let Some(other) = other.as_f32() {
+                    *v = other;
+                }
+            }
+            Self::Hash(v) => {
+                if let Some(other) = other.as_hash() {
+                    *v = other;
+                }
+            }
+            Self::String(v) => {
+                if let Some(other) = other.as_str() {
+                    *v = other.to_string();
+                }
+            }
+            Self::List(v) => {
+                if let Some(other) = other.as_list() {
+                    v.iter_mut().zip(other).for_each(|(v, other)| {
+                        v.merge(other);
+                    });
+                }
+            }
+            Self::Map(v) => {
+                if let Some(other) = other.as_map() {
+                    for (k, v) in v.iter_mut() {
+                        if let Some(other) = other.get(k) {
+                            v.merge(other);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn from_reader<T: for<'de> Deserialize<'de>, R: std::io::Read + std::io::Seek>(
     mut reader: R,
 ) -> Result<T, de::Error> {
