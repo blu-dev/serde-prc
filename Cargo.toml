@@ -2,7 +2,9 @@
 name = "serde-prc"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["blujay"]
+description = "serde-rs support for the PRC (Smash Ultimate Parameter) file format"
+license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
