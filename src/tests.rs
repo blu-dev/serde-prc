@@ -1,10 +1,4 @@
-use std::io::Read;
-
-use crate::{
-    de::{ReferenceData, ValueDeserializer},
-    Value,
-};
-use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
+use crate::de::{ReferenceData, ValueDeserializer};
 use hash40::{hash40, Hash40};
 use serde::Deserialize;
 use serial_test::serial;
@@ -229,69 +223,4 @@ fn deserialize_list() {
         <[i32; 3]>::deserialize(&mut deserializer).unwrap(),
         [19i32, 128i32, -1i32]
     );
-}
-
-#[test]
-#[serial]
-fn deserialize_file() {
-    use serde::Deserialize;
-    #[derive(Debug, Deserialize)]
-    struct SomeVl {
-        param_special_hi: Vec<ParamSpecialHi>,
-    }
-
-    #[derive(Debug, Deserialize)]
-    struct ParamSpecialHi {
-        y_acl_mul: f32,
-        x_acl_air: f32,
-        y_spd_air: f32,
-        x_dcl_ground: f32,
-        x_acl_ground: f32,
-        landing_frame: f32,
-        x_spd_max_air: f32,
-        ground_mot_frame: f32,
-        x_spd_max_ground: f32,
-        x_dcl_ground_spinend: f32,
-    }
-
-    const FILE_BYTES: &[u8] = include_bytes!("/Users/blujay/Downloads/vl.prc");
-    Hash40::label_map().lock().unwrap().clear();
-
-    Hash40::label_map()
-        .lock()
-        .unwrap()
-        .add_custom_labels_from_path("/Users/blujay/.cargo/bin/ParamLabels.csv")
-        .unwrap();
-
-    let mut cursor = std::io::Cursor::new(FILE_BYTES);
-
-    // Check magic
-    let mut magic = [0u8; 8];
-    cursor.read_exact(&mut magic).unwrap();
-
-    assert_eq!(magic, *b"paracobn");
-
-    let hash_data_size = cursor.read_u32::<LittleEndian>().unwrap();
-    assert_eq!(hash_data_size % 8, 0);
-    let ref_data_size = cursor.read_u32::<LittleEndian>().unwrap();
-
-    let hashes: Vec<_> = (0..hash_data_size / 8)
-        .map(|_| Hash40(cursor.read_u64::<LittleEndian>().unwrap()))
-        .collect();
-
-    let mut ref_data = Vec::with_capacity(ref_data_size as usize);
-    unsafe {
-        ref_data.set_len(ref_data_size as usize);
-        cursor.read_exact(&mut ref_data).unwrap();
-    }
-
-    let mut deserializer = ValueDeserializer::new(
-        ReferenceData::new(ref_data, 8 + hash_data_size as usize),
-        &hashes,
-        &mut cursor,
-    );
-
-    let map = SomeVl::deserialize(&mut deserializer).unwrap();
-
-    println!("{map:#?}");
 }

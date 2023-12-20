@@ -14,5 +14,3 @@ thiserror = "1.0.51"
 
 [dev-dependencies]
 serial_test = "2.0.0"
-toml = { version = "0.8.8", features = ["preserve_order"] }
-serde_json = { version = "1", features = ["preserve_order"] }

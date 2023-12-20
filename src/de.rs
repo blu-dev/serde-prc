@@ -9,7 +9,6 @@ use std::{
     collections::HashMap,
     fmt::{Debug, Display},
     io::{Read, Seek, SeekFrom},
-    task::Wake,
 };
 use thiserror::Error;
 
@@ -137,8 +136,8 @@ pub(crate) struct ReferenceData {
     maps: HashMap<u32, Vec<(Hash40, u32)>>,
 }
 
-#[cfg(test)]
 impl ReferenceData {
+    #[cfg(test)]
     pub fn mock(bytes: &[u8]) -> Self {
         Self {
             file_offset: 0,
@@ -157,6 +156,7 @@ impl ReferenceData {
         }
     }
 
+    #[cfg(test)]
     pub fn empty() -> Self {
         Self {
             file_offset: 0,
