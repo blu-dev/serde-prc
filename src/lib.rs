@@ -3,6 +3,7 @@ use std::fmt::Debug;
 pub use hash40::Hash40;
 use indexmap::IndexMap;
 pub mod de;
+pub mod ser;
 
 #[cfg(test)]
 mod tests;

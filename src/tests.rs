@@ -234,6 +234,26 @@ fn deserialize_list() {
 #[test]
 #[serial]
 fn deserialize_file() {
+    use serde::Deserialize;
+    #[derive(Debug, Deserialize)]
+    struct SomeVl {
+        param_special_hi: Vec<ParamSpecialHi>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct ParamSpecialHi {
+        y_acl_mul: f32,
+        x_acl_air: f32,
+        y_spd_air: f32,
+        x_dcl_ground: f32,
+        x_acl_ground: f32,
+        landing_frame: f32,
+        x_spd_max_air: f32,
+        ground_mot_frame: f32,
+        x_spd_max_ground: f32,
+        x_dcl_ground_spinend: f32,
+    }
+
     const FILE_BYTES: &[u8] = include_bytes!("/Users/blujay/Downloads/vl.prc");
     Hash40::label_map().lock().unwrap().clear();
 
@@ -271,7 +291,7 @@ fn deserialize_file() {
         &mut cursor,
     );
 
-    let map = Value::deserialize(&mut deserializer).unwrap();
+    let map = SomeVl::deserialize(&mut deserializer).unwrap();
 
     println!("{map:#?}");
 }

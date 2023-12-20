@@ -621,6 +621,7 @@ impl<'de, 'a, R: Read + Seek + 'de> Deserializer<'de> for &mut ValueDeserializer
         V: Visitor<'de>,
     {
         if self.reader.peek_param_id()? == ParamId::Map {
+            let _ = self.reader.next_param_id();
             self.deserialize_map(Some(fields), visitor)
         } else {
             self.deserialize_any(visitor)
