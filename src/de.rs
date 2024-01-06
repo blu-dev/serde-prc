@@ -392,6 +392,7 @@ impl<'de, 'a: 'b, 'b, R: Read + Seek + 'de> MapAccess<'de> for &mut MapDeseriali
         }
 
         let offset = self.keys[self.current_key].1;
+
         tri_map!(
             self.value_deserializer.reader,
             Map,
@@ -483,7 +484,10 @@ impl<'de, 'a, R: Read + Seek + 'de> Deserializer<'de> for &mut ValueDeserializer
     {
         use ParamId as P;
 
-        match self.reader.next_param_id()? {
+        let offset = self.reader.stream_position()?;
+        let next = self.reader.next_param_id()?;
+
+        match next {
             P::Bool => {
                 let value = tri_map!(self.reader, Bool, self.reader.read_u8());
                 Ok(tri!(self.reader, Bool, visitor.visit_bool(value != 0)))
@@ -590,6 +594,7 @@ impl<'de, 'a, R: Read + Seek + 'de> Deserializer<'de> for &mut ValueDeserializer
         V: serde::de::Visitor<'de>,
     {
         if self.reader.peek_param_id()? == ParamId::Hash {
+            let _ = self.reader.next_param_id();
             let index =
                 tri_map!(self.reader, Hash, self.reader.read_u32::<LittleEndian>()) as usize;
 
